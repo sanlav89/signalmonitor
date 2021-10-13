@@ -22,7 +22,7 @@ public:
     void setXLabel(const QString &label);
     void setYLabel(const QString &label);
     void setXValues(const QVector<qreal> &xValues);
-    void setYValues(const QVector<qreal> &yValues);
+    virtual void setYValues(const QVector<qreal> &yValues);
     void setValues(const QVector<QPointF> &values);
 
 protected:
@@ -30,7 +30,6 @@ protected:
     virtual void mouseDoubleClickEvent(QMouseEvent *e) override;
     virtual void keyPressEvent(QKeyEvent *event) override;
 
-private:
     qreal m_xLeft;
     qreal m_xRight;
     qreal m_yBottom;

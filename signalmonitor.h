@@ -2,7 +2,7 @@
 #define SIGNALMONITOR_H
 
 #include <QWidget>
-#include "graphbase.h"
+#include "graphspectrum.h"
 
 class SignalMonitor : public QWidget
 {
@@ -13,6 +13,7 @@ public:
     ~SignalMonitor();
 
     GraphBase *m_graph;
+    GraphSpectrum *m_spectrum;
 
 };
 #endif // SIGNALMONITOR_H
