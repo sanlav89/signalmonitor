@@ -9,13 +9,23 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    graphbase.cpp \
     main.cpp \
+    myplotpicker.cpp \
+    myzoomer.cpp \
     signalmonitor.cpp
 
 HEADERS += \
+    graphbase.h \
+    myplotpicker.h \
+    myzoomer.h \
     signalmonitor.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+INCLUDEPATH += C:/qwt-6.1.5/include
+LIBS += -LC:/qwt-6.1.5/lib -lqwt
+
