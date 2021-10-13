@@ -28,23 +28,30 @@ public:
 protected:
     virtual void wheelEvent(QWheelEvent *e) override;
     virtual void mouseDoubleClickEvent(QMouseEvent *e) override;
+    virtual void keyPressEvent(QKeyEvent *event) override;
 
 private:
     qreal m_xLeft;
     qreal m_xRight;
-    qreal m_yTop;
     qreal m_yBottom;
+    qreal m_yTop;
     QVector<qreal> m_xValues;
     QVector<qreal> m_yValues;
+    QFont m_generalFont;
+    QwtPlotGrid *m_grid;
+    MyZoomer *m_zoomer;
+
     QwtPlotCurve *m_curve;
     QwtPlotMarker *m_markerValue;
     QwtPlotMarker *m_markerLeft;
     QwtPlotMarker *m_markerRight;
     QwtPlotZoneItem *m_zoomZone;
-    QwtPlotGrid *m_grid;
-    QFont m_generalFont;
-    MyZoomer *m_zoomer;
     MyPlotPicker *m_picker;
+
+    qreal minXValue() const;
+    qreal maxXValue() const;
+    qreal minYValue() const;
+    qreal maxYValue() const;
 
 public slots:
     void updateXValues(const QVector<qreal> &xValues);

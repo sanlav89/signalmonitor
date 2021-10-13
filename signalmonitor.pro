@@ -12,12 +12,14 @@ SOURCES += \
     graphbase.cpp \
     main.cpp \
     myplotpicker.cpp \
+    myscaledraw.cpp \
     myzoomer.cpp \
     signalmonitor.cpp
 
 HEADERS += \
     graphbase.h \
     myplotpicker.h \
+    myscaledraw.h \
     myzoomer.h \
     signalmonitor.h
 
