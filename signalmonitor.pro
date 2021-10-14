@@ -17,7 +17,8 @@ SOURCES += \
     myplotpicker.cpp \
     myscaledraw.cpp \
     myzoomer.cpp \
-    signalmonitor.cpp
+    signalmonitor.cpp \
+    sortedtreewidgetitem.cpp
 
 HEADERS += \
     datasource.h \
@@ -27,7 +28,8 @@ HEADERS += \
     myplotpicker.h \
     myscaledraw.h \
     myzoomer.h \
-    signalmonitor.h
+    signalmonitor.h \
+    sortedtreewidgetitem.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
