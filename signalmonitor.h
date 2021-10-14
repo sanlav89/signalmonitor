@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "graphspectrum.h"
+#include "datasource.h"
 
 class SignalMonitor : public QWidget
 {
@@ -14,6 +15,7 @@ public:
 
     GraphBase *m_graph;
     GraphSpectrum *m_spectrum;
+    DataSource *m_dataSource;
 
 };
 #endif // SIGNALMONITOR_H

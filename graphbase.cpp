@@ -149,7 +149,7 @@ void GraphBase::setYLabel(const QString &label)
 
 void GraphBase::setXValues(const QVector<qreal> &xValues)
 {
-    if (xValues.size()) {
+    if (xValues.size() == m_yValues.size()) {
         m_xValues = xValues;
         m_curve->setSamples(m_xValues.data(), m_yValues.data(), xValues.size());
         replot();
@@ -158,10 +158,14 @@ void GraphBase::setXValues(const QVector<qreal> &xValues)
 
 void GraphBase::setYValues(const QVector<qreal> &yValues)
 {
-    if (yValues.size()) {
+    if (yValues.size() == m_xValues.size()) {
+        qDebug() << Q_FUNC_INFO << "here";
         m_yValues = yValues;
+        qDebug() << Q_FUNC_INFO << "here";
         m_curve->setSamples(m_xValues.data(), m_yValues.data(), yValues.size());
+        qDebug() << Q_FUNC_INFO << "here";
         replot();
+        qDebug() << Q_FUNC_INFO << "here";
     }
 }
 

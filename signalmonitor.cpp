@@ -12,7 +12,7 @@ SignalMonitor::SignalMonitor(QWidget *parent)
     mainLayout->addWidget(m_spectrum, 1, 0, 1, 1);
     setLayout(mainLayout);
 
-    int n = 16384;
+    int n = DataSource::SignalLen;
     QVector<QPointF> nullData(n);
     QVector<qreal> testData(n);
     for (int i = 0; i < n; i++) {
@@ -25,6 +25,14 @@ SignalMonitor::SignalMonitor(QWidget *parent)
 
     m_graph->setYValues(testData);
     m_spectrum->setYValues(testData);
+
+
+    m_dataSource = new DataSource(this);
+    m_dataSource->loadData("id_09.dat.save");
+
+    connect(m_dataSource, &DataSource::yValuesChanged, m_graph, &GraphBase::updateYValues);
+    connect(m_dataSource, &DataSource::yValuesChanged, m_spectrum, &GraphSpectrum::updateYValues);
+
 }
 
 SignalMonitor::~SignalMonitor()
