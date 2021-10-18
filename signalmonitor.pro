@@ -9,7 +9,6 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    datasource.cpp \
     fftengine.cpp \
     graphbase.cpp \
     graphspectrum.cpp \
@@ -21,7 +20,7 @@ SOURCES += \
     sortedtreewidgetitem.cpp
 
 HEADERS += \
-    datasource.h \
+    ../shmemstatistic/statistic.h \
     fftengine.h \
     graphbase.h \
     graphspectrum.h \
@@ -39,3 +38,4 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 INCLUDEPATH += C:/qwt-6.1.5/include
 LIBS += -LC:/qwt-6.1.5/lib -lqwt
 
+INCLUDEPATH += $${PWD}/../shmemstatistic

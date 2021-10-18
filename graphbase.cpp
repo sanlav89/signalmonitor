@@ -159,13 +159,9 @@ void GraphBase::setXValues(const QVector<qreal> &xValues)
 void GraphBase::setYValues(const QVector<qreal> &yValues)
 {
     if (yValues.size() == m_xValues.size()) {
-        qDebug() << Q_FUNC_INFO << "here";
         m_yValues = yValues;
-        qDebug() << Q_FUNC_INFO << "here";
         m_curve->setSamples(m_xValues.data(), m_yValues.data(), yValues.size());
-        qDebug() << Q_FUNC_INFO << "here";
         replot();
-        qDebug() << Q_FUNC_INFO << "here";
     }
 }
 
