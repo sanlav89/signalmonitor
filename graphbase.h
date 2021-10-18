@@ -10,6 +10,7 @@
 
 #include "myzoomer.h"
 #include "myplotpicker.h"
+#include "myscaledraw.h"
 
 class GraphBase : public QwtPlot
 {
@@ -17,13 +18,10 @@ class GraphBase : public QwtPlot
 public:
     GraphBase(QWidget *parent = nullptr);
 
-    void setTitle(const QString &title);
     void setGrid(bool xEnabled, bool yEnabled, const QPen &pen);
     void setXLabel(const QString &label);
     void setYLabel(const QString &label);
-    void setXValues(const QVector<qreal> &xValues);
     virtual void setYValues(const QVector<qreal> &yValues);
-    void setValues(const QVector<QPointF> &values);
 
 protected:
     virtual void wheelEvent(QWheelEvent *e) override;
@@ -34,6 +32,7 @@ protected:
     qreal m_xRight;
     qreal m_yBottom;
     qreal m_yTop;
+    qreal m_fs;
     QVector<qreal> m_xValues;
     QVector<qreal> m_yValues;
     QFont m_generalFont;
@@ -46,6 +45,7 @@ protected:
     QwtPlotMarker *m_markerRight;
     QwtPlotZoneItem *m_zoomZone;
     MyPlotPicker *m_picker;
+    bool m_wasMoved;
 
     qreal minXValue() const;
     qreal maxXValue() const;
@@ -53,9 +53,7 @@ protected:
     qreal maxYValue() const;
 
 public slots:
-    void updateXValues(const QVector<qreal> &xValues);
     void updateYValues(const QVector<qreal> &yValues);
-    void updateValues(const QVector<QPointF> &values);
 
 private slots:
     void pickerSelected(const QVector<QPointF> &pa);

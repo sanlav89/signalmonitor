@@ -41,17 +41,12 @@ SignalMonitor::SignalMonitor(QWidget *parent)
     }
     setLayout(mainLayout);
 
+    // Тестовые данные
     int n = MAX_SAMPLES;
-    QVector<QPointF> nullData(n);
     QVector<qreal> testData(n);
     for (int i = 0; i < n; i++) {
         testData[i] = rand();
-        nullData[i] = QPointF(i, 0);
     }
-
-    m_graph->setValues(nullData);
-    m_spectrum->setValues(nullData);
-
     m_graph->setYValues(testData);
     m_spectrum->setYValues(testData);
 
@@ -169,7 +164,7 @@ void SignalMonitor::onTimeout()
 
         // Show samples
         for (int i = 0; i < MAX_SAMPLES; i++) {
-            m_yValues[i] = statistic->samples[i];
+            m_yValues[i] = statistic->samples[i] >> 4;
         }
         m_shmem.unlock();
 

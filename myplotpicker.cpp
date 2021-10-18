@@ -12,6 +12,6 @@ QPointF MyPlotPicker::position()
 QwtText MyPlotPicker::trackerTextF(const QPointF &pos) const
 {
     QwtText text;
-    text.setText(QString::asprintf("Aмп.: %.3f В\r\n T: %.6f с", pos.y(), pos.x()));
+    text.setText(QString::asprintf("%.3f\r\n%.3f", pos.y(), pos.x()));
     return text;
 }
