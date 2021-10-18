@@ -8,9 +8,10 @@
 #include <QPushButton>
 #include <QMap>
 #include <QTimer>
+#include <QSharedMemory>
 #include "graphspectrum.h"
-#include "datasource.h"
 #include "sortedtreewidgetitem.h"
+#include "statistic.h"
 
 class SignalMonitor : public QWidget
 {
@@ -32,13 +33,19 @@ private:
     GraphSpectrum *m_spectrum;
     QTreeWidget *m_modulesTw;
     QRadioButton *m_channelRaB[NUMBER_OF_CHANNELS];
-    DataSource *m_dataSource;
+//    DataSource *m_dataSource;
     QPushButton *m_startStopBtn;
 
     bool m_isStarted;
     QMap<int, SortedTreeWidgetItem *> m_itemsMap;
 
     QTimer *m_testTimer;
+    QSharedMemory m_shmem;
+    statistic_t *statistic;
+    QVector<qreal> m_yValues;
+
+    bool initSharedMemory();
+    void detach();
 
 public slots:
     void addStatisticItem(int id, int cycle);

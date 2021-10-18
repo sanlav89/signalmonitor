@@ -6,6 +6,7 @@
 SignalMonitor::SignalMonitor(QWidget *parent)
     : QWidget(parent)
     , m_isStarted(false)
+    , m_shmem("SHMEM")
 {
     m_graph = new GraphBase(this);
     m_spectrum = new GraphSpectrum(this);
@@ -40,30 +41,25 @@ SignalMonitor::SignalMonitor(QWidget *parent)
     }
     setLayout(mainLayout);
 
-    int n = DataSource::SignalLen;
-    QVector<QPointF> nullData(n);
+    // Тестовые данные
+    int n = MAX_SAMPLES;
     QVector<qreal> testData(n);
     for (int i = 0; i < n; i++) {
         testData[i] = rand();
-        nullData[i] = QPointF(i, 0);
     }
-
-    m_graph->setValues(nullData);
-    m_spectrum->setValues(nullData);
-
     m_graph->setYValues(testData);
     m_spectrum->setYValues(testData);
 
-    m_dataSource = new DataSource(this);
-    m_dataSource->loadData("id_09.dat.save");
-
-    connect(m_dataSource, &DataSource::yValuesChanged, m_graph, &GraphBase::updateYValues);
-    connect(m_dataSource, &DataSource::yValuesChanged, m_spectrum, &GraphSpectrum::updateYValues);
     connect(m_startStopBtn, &QPushButton::clicked, this, &SignalMonitor::onStartStopBtn);
 
     m_testTimer = new QTimer(this);
     m_testTimer->start(500);
     connect(m_testTimer, &QTimer::timeout, this, &SignalMonitor::onTimeout);
+
+    m_yValues.reserve(MAX_SAMPLES);
+    m_yValues = QVector<qreal>(MAX_SAMPLES);
+
+    initSharedMemory();
 
 }
 
@@ -93,6 +89,29 @@ int SignalMonitor::selectedChannel() const
         }
     }
     return 0;
+}
+
+bool SignalMonitor::initSharedMemory()
+{
+    if (m_shmem.isAttached()) {
+        detach();
+    }
+
+    if (!m_shmem.attach()) {
+        qDebug() << Q_FUNC_INFO << "Unable to attach to shared memory segment.";
+        return false;
+    }
+
+    statistic = static_cast<statistic_t *>(m_shmem.data());
+
+    return true;
+}
+
+void SignalMonitor::detach()
+{
+    if (!m_shmem.detach()) {
+        qDebug() << Q_FUNC_INFO << "Unable to detach from shared memory.";
+    }
 }
 
 void SignalMonitor::addStatisticItem(int id, int cycle)
@@ -125,6 +144,31 @@ void SignalMonitor::onStartStopBtn()
 
 void SignalMonitor::onTimeout()
 {
-    qDebug() << selectedChannel() << selectedId() << isStarted();
+//    qDebug() << selectedChannel() << selectedId() << isStarted();
+    if (m_shmem.isAttached()) {
+
+//        qDebug() << "m_shmem.isAttached()";
+
+        // Список id-шек
+        for (int i = 0; i < MAX_MODULES; i++) {
+            if (statistic->ids[i].id > 0 && statistic->ids[i].cycles > 0) {
+                addStatisticItem(statistic->ids[i].id, statistic->ids[i].cycles);
+            }
+        }
+
+        m_shmem.lock();
+
+        // Выбранные id и channel
+        statistic->id_channel.channel = selectedChannel();
+        statistic->id_channel.id = selectedId();
+
+        // Show samples
+        for (int i = 0; i < MAX_SAMPLES; i++) {
+            m_yValues[i] = statistic->samples[i] >> 4;
+        }
+        m_shmem.unlock();
+
+        updateYValues(m_yValues);
+    }
 }
 

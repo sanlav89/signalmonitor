@@ -3,7 +3,6 @@
 #include <QMouseEvent>
 #include <qwt_picker_machine.h>
 #include <qwt_symbol.h>
-#include "myscaledraw.h"
 
 GraphBase::GraphBase(QWidget *parent)
     : QwtPlot(parent)
@@ -11,19 +10,21 @@ GraphBase::GraphBase(QWidget *parent)
     , m_xRight(0)
     , m_yBottom(0)
     , m_yTop(0)
+    , m_fs(120e6)
     , m_xValues({})
     , m_yValues({})
     , m_generalFont(QFont("Helvetica", 10))
+    , m_wasMoved(false)
 {
     // Основное
-    QwtText axisTitle = QwtText("Амплитуда [В]");
-    QFont axisTitleFont = QFont("Consolas", 20);
+    QwtText axisTitle = QwtText("Амплитуда [е.м.р.]");
+    QFont axisTitleFont = QFont("Helvetica", 12);
     axisTitle.setFont(axisTitleFont);
     setAxisTitle(QwtPlot::yLeft, axisTitle);
-    axisTitle.setText("Время [сек]");
+    axisTitle.setText("Время [мс]");
     setAxisTitle(QwtPlot::xBottom, axisTitle);
     setAxisScaleDraw(QwtPlot::yLeft, new MyScaleDraw());
-    setAxisScaleDraw(QwtPlot::xBottom, new MyScaleDraw("%.6f"));
+    setAxisScaleDraw(QwtPlot::xBottom, new MyScaleDraw("%.3f"));
 
     // Шрифт осей
     setAxisFont(QwtPlot::xBottom,  m_generalFont);
@@ -60,7 +61,7 @@ GraphBase::GraphBase(QWidget *parent)
     m_picker->setRubberBandPen(QPen(Qt::white));
     m_picker->setTrackerMode(QwtPicker::AlwaysOn);
     m_picker->setTrackerPen(QPen(Qt::black));
-    m_picker->setTrackerFont(QFont("Consolas", 18, QFont::Normal));
+    m_picker->setTrackerFont(QFont("Consolas", 12, QFont::Normal));
 
     // Левый маркер выделения
     m_markerLeft = new QwtPlotMarker();
@@ -88,7 +89,7 @@ GraphBase::GraphBase(QWidget *parent)
                                    QwtSymbol::Diamond,
                                    QBrush(Qt::gray),
                                    QPen(Qt::black, 1.5),
-                                   QSize(20, 20)
+                                   QSize(10, 10)
                                    ));
     m_markerValue->setLabelAlignment(Qt::AlignTop | Qt::AlignLeft);
     m_markerValue->setVisible(false);
@@ -97,12 +98,12 @@ GraphBase::GraphBase(QWidget *parent)
     m_curve = new QwtPlotCurve;
     m_curve->setBrush(QBrush());
     m_curve->setStyle(QwtPlotCurve::Lines);
-    m_curve->setPen(QPen(Qt::green));
+    m_curve->setPen(QPen(Qt::darkGreen));
     m_curve->attach(this);
 
     // Зоны выделения
     m_zoomZone = new QwtPlotZoneItem();
-    m_zoomZone->setBrush(Qt::darkRed);
+    m_zoomZone->setBrush(Qt::darkGray);
     m_zoomZone->attach(this);
     m_zoomZone->setVisible(false);
 
@@ -114,12 +115,9 @@ GraphBase::GraphBase(QWidget *parent)
     connect(m_picker, SIGNAL(moved(const QPointF &)),
             this, SLOT(pickerMoved(const QPointF &)));
 
-    replot();
-}
+    m_xValues.reserve(16384);
+    m_yValues.reserve(16384);
 
-void GraphBase::setTitle(const QString &title)
-{
-    setTitle(title);
     replot();
 }
 
@@ -147,37 +145,17 @@ void GraphBase::setYLabel(const QString &label)
     setAxisTitle(QwtPlot::yLeft, t);
 }
 
-void GraphBase::setXValues(const QVector<qreal> &xValues)
-{
-    if (xValues.size() == m_yValues.size()) {
-        m_xValues = xValues;
-        m_curve->setSamples(m_xValues.data(), m_yValues.data(), xValues.size());
-        replot();
-    }
-}
-
 void GraphBase::setYValues(const QVector<qreal> &yValues)
 {
-    if (yValues.size() == m_xValues.size()) {
-        qDebug() << Q_FUNC_INFO << "here";
-        m_yValues = yValues;
-        qDebug() << Q_FUNC_INFO << "here";
-        m_curve->setSamples(m_xValues.data(), m_yValues.data(), yValues.size());
-        qDebug() << Q_FUNC_INFO << "here";
-        replot();
-        qDebug() << Q_FUNC_INFO << "here";
+    m_yValues = yValues;
+    if (yValues.size() != m_xValues.size()) {
+        qreal T = 1 / m_fs;
+        m_xValues = QVector<qreal>(yValues.size());
+        for (int i = 0; i < m_xValues.size(); i++) {
+            m_xValues[i] = i * T * 1000;
+        }
     }
-}
-
-void GraphBase::setValues(const QVector<QPointF> &values)
-{
-    m_xValues = QVector<qreal>(values.size());
-    m_yValues = QVector<qreal>(values.size());
-    for (int i = 0; i < values.size(); i++) {
-        m_xValues[i] = values[i].x();
-        m_yValues[i] = values[i].y();
-    }
-    m_curve->setSamples(m_xValues.data(), m_yValues.data(), values.size());
+    m_curve->setSamples(m_xValues.data(), m_yValues.data(), yValues.size());
     replot();
 }
 
@@ -258,9 +236,9 @@ void GraphBase::keyPressEvent(QKeyEvent *event)
     if (event->key() == Qt::Key_1 && event->modifiers() == Qt::ControlModifier) {
         QwtText text;
         QPointF pos = m_picker->position();
-        text.setText(QString::asprintf("Aмп.: %.3f В\r\n T: %.6f с", pos.y(), pos.x()));
+        text.setText(QString::asprintf("%.3f\r\n%.3f", pos.y(), pos.x()));
         text.setColor(Qt::black);
-        text.setFont(QFont("Consolas", 18, QFont::Normal));
+        text.setFont(QFont("Consolas", 12, QFont::Normal));
         m_markerValue->setLabel(text);
         m_markerValue->setValue(pos);
         m_markerValue->setVisible(!m_markerValue->isVisible());
@@ -288,19 +266,9 @@ qreal GraphBase::maxYValue() const
     return m_curve->maxYValue();
 }
 
-void GraphBase::updateXValues(const QVector<qreal> &xValues)
-{
-    setXValues(xValues);
-}
-
 void GraphBase::updateYValues(const QVector<qreal> &yValues)
 {
     setYValues(yValues);
-}
-
-void GraphBase::updateValues(const QVector<QPointF> &values)
-{
-    setValues(values);
 }
 
 void GraphBase::pickerSelected(const QVector<QPointF> &pa)
@@ -309,15 +277,19 @@ void GraphBase::pickerSelected(const QVector<QPointF> &pa)
     m_zoomZone->setVisible(false);
     m_markerLeft->setVisible(false);
     m_markerRight->setVisible(false);
-    m_xLeft = m_markerLeft->value().x();
-    if (m_xLeft < minXValue()) {
-        m_xLeft = minXValue();
+    if (m_wasMoved) {
+        m_xLeft = m_markerLeft->value().x();
+        if (m_xLeft < minXValue()) {
+            m_xLeft = minXValue();
+        }
+        m_xRight = m_markerRight->value().x();
+        if (m_xRight > maxXValue()) {
+            m_xRight = maxXValue();
+        }
+        qDebug() << Q_FUNC_INFO << m_xLeft << m_xRight << minXValue() << maxXValue();
+        setAxisScale(QwtPlot::xBottom, m_xLeft, m_xRight);
+        m_wasMoved = false;
     }
-    m_xRight = m_markerRight->value().x();
-    if (m_xRight > maxXValue()) {
-        m_xRight = maxXValue();
-    }
-    setAxisScale(QwtPlot::xBottom, m_xLeft, m_xRight);
     replot();
 }
 
@@ -333,6 +305,7 @@ void GraphBase::pickerAppended(const QPointF &pos)
 void GraphBase::pickerMoved(const QPointF &pos)
 {
     m_zoomZone->setVisible(true);
+    m_wasMoved = true;
 
     QPointF posLeft = m_markerLeft->value();
     QPointF posRight = m_markerRight->value();
